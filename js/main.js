@@ -1,101 +1,86 @@
 define(function(require) {
 
-    var VERTICAL = 1;
-    var HORIZONTAL = 2;
-
     var Scene = require('scene');
 
     var basicVert = require('text!shaders/basic.vert');
     var circleFrag = require('text!shaders/circle.frag');
-    var blurFrag = require('text!shaders/blur2.frag');
-    var greyscottFrag = require('text!shaders/greyscott.frag');
+    var thresholdFrag = require('text!shaders/threshold.frag');
+    var greyscottFrag = require('text!shaders/greyscott-pmneila.frag');
 
-    var scene = new Scene();
+    var nearestPower = function(n) {
+        n--;
+        n |= n >> 1;
+        n |= n >> 2;
+        n |= n >> 4;
+        n |= n >> 8;
+        n |= n >> 16;
+        n++;
+        return n;
+    }
+
+    var scene = new Scene(
+        nearestPower(document.body.clientWidth),
+        nearestPower(document.body.clientHeight)
+    );
     var originProg = scene.createProgramInfo(basicVert, circleFrag);
-    var blurProg = scene.createProgramInfo(basicVert, blurFrag);
+    var thresholdProg = scene.createProgramInfo(basicVert, thresholdFrag);
     var greyscottProg = scene.createProgramInfo(basicVert, greyscottFrag);
 
-    var bufferA = scene.createBuffer(1);
-    var bufferB = scene.createBuffer(1);
-    var bufferC = scene.createBuffer(1);
-    var bufferD = scene.createBuffer(1);
-    var lastBuffer;
+    var scale = 4;
+    var bufferA = scene.createBuffer(
+        scene.width / scale,
+        scene.height / scale
+    );
+    var bufferB = scene.createBuffer(
+        scene.width / scale,
+        scene.height / scale
+    );
 
     scene.draw({
         program: originProg,
         output: bufferA
     });
 
-    var updateRequired = true;
+    var mLastTime = Number(new Date());
 
-    function simulateLoop() {
-        if (updateRequired) {
-            simulate();
-            updateRequired = false;
-        }
-        setTimeout(simulateLoop, 1000 / 120);
-    }
+    function render(time) {
+        var dt = (time - mLastTime)/20.0;
+        if(dt > 0.8 || dt<=0)
+            dt = 0.8;
+        mLastTime = time;
 
-    function applyBlur(input, output, direction) {
-        var blur = 1;
+        var steps = 8;
+        var lastOutput = bufferA;
 
-        if (direction === VERTICAL) {
-            dir = [0, 1];
-        } else {
-            dir = [1, 0];
+        for (var i = 0; i < steps; i++) {
+            var input = lastOutput;
+            var output = (lastOutput === bufferA) ? bufferB : bufferA;
+            lastOutput = output;
+            scene.draw({
+                program: greyscottProg,
+                uniforms: {
+                    delta: dt,
+                    feed: 0.037,
+                    kill: 0.06
+                },
+                inputs: {
+                    tSource: input
+                },
+                output: output
+            });
         }
 
         scene.draw({
-            program: blurProg,
+            program: thresholdProg,
             uniforms: {
-                dir: dir,
-                ammount: blur
+                threshold: 0.2
             },
             inputs: {
-                u_texture: input
-            },
-            output: output
+                u_texture: bufferA
+            }
         });
-    }
 
-    function applyBlurMultiple(input, store, output, count) {
-        count--;
-        var i = 0;
-        while (i < count) {
-            applyBlur(input, store, VERTICAL);
-            applyBlur(store, input, HORIZONTAL);
-            i++;
-        }
-        applyBlur(input, store, VERTICAL);
-        applyBlur(store, output, HORIZONTAL);
-    }
-
-    var startTime = Number(new Date());
-
-    function simulate() {
-        // Blur 1
-        applyBlurMultiple(bufferA, bufferB, bufferC, 4)
-
-        // Blur 2
-        applyBlurMultiple(bufferC, bufferD, bufferB, 4)
-
-        // Grey-Scott
-
-        scene.draw({
-            program: greyscottProg,
-            inputs: {
-                u_sample_small: bufferC,
-                u_sample_large: bufferB
-            },
-            output: bufferA
-        });
-    }
-
-    function render() {
-        scene.drawLastBuffer();
-        updateRequired = true;
         requestAnimationFrame(render);
     }
-    simulateLoop();
     requestAnimationFrame(render);
 });
