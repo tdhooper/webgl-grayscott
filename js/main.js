@@ -4,12 +4,9 @@ define(function(require) {
 
     var basicVert = require('text!shaders/basic.vert');
     var circleFrag = require('text!shaders/circle.frag');
-    var thresholdFrag = require('text!shaders/threshold.frag');
-    var laplFrag = require('text!shaders/lapl.frag');
     var copyFrag = require('text!shaders/copy.frag');
-    var debugFrag = require('text!shaders/debug.frag');
-    // var blurFrag = require('text!shaders/blur.frag');
-    var greyscottFrag = require('text!shaders/greyscott-pmneilaB.frag');
+    var blurFrag = require('text!shaders/blur.frag');
+    var greyscottFrag = require('text!shaders/greyscott.frag');
 
     var previousPower = function(x) {
         x = x | (x >> 1);
@@ -25,14 +22,11 @@ define(function(require) {
         previousPower(document.body.clientHeight)
     );
     var originProg = scene.createProgramInfo(basicVert, circleFrag);
-    var thresholdProg = scene.createProgramInfo(basicVert, thresholdFrag);
-    // var blurProg = scene.createProgramInfo(basicVert, blurFrag);
-    var laplProg = scene.createProgramInfo(basicVert, laplFrag);
+    var blurProg = scene.createProgramInfo(basicVert, blurFrag);
     var copyProg = scene.createProgramInfo(basicVert, copyFrag);
-    var debugProg = scene.createProgramInfo(basicVert, debugFrag);
     var greyscottProg = scene.createProgramInfo(basicVert, greyscottFrag);
 
-    var scale = 2;
+    var scale = 1;
     var bufferA = scene.createBuffer(
         scene.width / scale,
         scene.height / scale
@@ -53,6 +47,62 @@ define(function(require) {
 
     var mLastTime = Number(new Date());
 
+    function applyBlur(n, input, outputSmall, outputLarge) {
+
+        var lastOutput = input
+
+        for (var i = 0; i < n * 2; i++) {
+
+            if (i < n) {
+                scene.draw({
+                    program: blurProg,
+                    uniforms: {
+                        direction: [1.0, 0.0]
+                    },
+                    inputs: {
+                        u_texture: lastOutput
+                    },
+                    output: outputLarge
+                });
+                scene.draw({
+                    program: blurProg,
+                    uniforms: {
+                        direction: [0.0, 1.0]
+                    },
+                    inputs: {
+                        u_texture: outputLarge
+                    },
+                    output: outputSmall
+                });
+                lastOutput = outputSmall;
+
+            } else {
+                scene.draw({
+                    program: blurProg,
+                    uniforms: {
+                        direction: [1.0, 0.0]
+                    },
+                    inputs: {
+                        u_texture: lastOutput
+                    },
+                    output: input
+                });
+                scene.draw({
+                    program: blurProg,
+                    uniforms: {
+                        direction: [0.0, 1.0]
+                    },
+                    inputs: {
+                        u_texture: input
+                    },
+                    output: outputLarge
+                });
+                lastOutput = outputLarge;
+            }
+        }
+
+    }
+
     function render(time) {
         var dt = (time - mLastTime)/20.0;
         if(dt > 0.8 || dt<=0)
@@ -62,51 +112,17 @@ define(function(require) {
         var steps = 1;
 
         for (var i = 0; i < steps; i++) {
-            scene.draw({
-                program: laplProg,
-                inputs: {
-                    tSource: bufferA
-                },
-                output: bufferB
-            });
-            scene.draw({
-                program: laplProg,
-                inputs: {
-                    tSource: bufferB
-                },
-                output: bufferC
-            });
-            scene.draw({
-                program: greyscottProg,
-                uniforms: {
-                    delta: dt,
-                    feed: 0.037,
-                    kill: 0.06
-                },
-                inputs: {
-                    tSource: bufferA,
-                    tLapl: bufferC,
-                },
-                output: bufferB
-            });
-            scene.draw({
-                program: copyProg,
-                inputs: {
-                    u_texture: bufferB
-                },
-                output: bufferA
-            });
+            applyBlur(8, bufferA, bufferB, bufferC)
         }
 
-        // scene.draw({
-        //     program: thresholdProg,
-        //     uniforms: {
-        //         threshold: 0.2
-        //     },
-        //     inputs: {
-        //         u_texture: bufferA
-        //     }
-        // });
+        scene.draw({
+            program: greyscottProg,
+            inputs: {
+                u_sample_small: bufferB,
+                u_sample_large: bufferC,
+            },
+            output: bufferA
+        });
 
         scene.draw({
             program: copyProg,
