@@ -7,26 +7,24 @@ define(function(require) {
     var thresholdFrag = require('text!shaders/threshold.frag');
     var greyscottFrag = require('text!shaders/greyscott-pmneila.frag');
 
-    var nearestPower = function(n) {
-        n--;
-        n |= n >> 1;
-        n |= n >> 2;
-        n |= n >> 4;
-        n |= n >> 8;
-        n |= n >> 16;
-        n++;
-        return n;
+    var previousPower = function(x) {
+        x = x | (x >> 1);
+        x = x | (x >> 2);
+        x = x | (x >> 4);
+        x = x | (x >> 8);
+        x = x | (x >> 16);
+        return x - (x >> 1);
     }
 
     var scene = new Scene(
-        nearestPower(document.body.clientWidth),
-        nearestPower(document.body.clientHeight)
+        previousPower(document.body.clientWidth),
+        previousPower(document.body.clientHeight)
     );
     var originProg = scene.createProgramInfo(basicVert, circleFrag);
     var thresholdProg = scene.createProgramInfo(basicVert, thresholdFrag);
     var greyscottProg = scene.createProgramInfo(basicVert, greyscottFrag);
 
-    var scale = 4;
+    var scale = 2;
     var bufferA = scene.createBuffer(
         scene.width / scale,
         scene.height / scale
