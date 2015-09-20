@@ -6,7 +6,8 @@ define(function(require) {
     var circleFrag = require('text!shaders/circle.frag');
     var copyFrag = require('text!shaders/copy.frag');
     var blurFrag = require('text!shaders/blur.frag');
-    var greyscottFrag = require('text!shaders/greyscott.frag');
+    var blendFrag = require('text!shaders/blend.frag');
+    var reactdiffFrag = require('text!shaders/reactdiff.frag');
 
     var previousPower = function(x) {
         x = x | (x >> 1);
@@ -24,7 +25,8 @@ define(function(require) {
     var originProg = scene.createProgramInfo(basicVert, circleFrag);
     var blurProg = scene.createProgramInfo(basicVert, blurFrag);
     var copyProg = scene.createProgramInfo(basicVert, copyFrag);
-    var greyscottProg = scene.createProgramInfo(basicVert, greyscottFrag);
+    var blendProg = scene.createProgramInfo(basicVert, blendFrag);
+    var reactdiffProg = scene.createProgramInfo(basicVert, reactdiffFrag);
 
     var scale = 1;
     var bufferA = scene.createBuffer(
@@ -39,6 +41,14 @@ define(function(require) {
         scene.width / scale,
         scene.height / scale
     );
+    var bufferD = scene.createBuffer(
+        scene.width / scale,
+        scene.height / scale
+    );
+    var bufferE = scene.createBuffer(
+        scene.width / scale,
+        scene.height / scale
+    );
 
     scene.draw({
         program: originProg,
@@ -47,7 +57,7 @@ define(function(require) {
 
     var mLastTime = Number(new Date());
 
-    function applyBlur(n, input, outputSmall, outputLarge) {
+    function applyBlur(n, input, buffer, outputSmall, outputLarge) {
 
         var lastOutput = input
 
@@ -62,7 +72,7 @@ define(function(require) {
                     inputs: {
                         u_texture: lastOutput
                     },
-                    output: outputLarge
+                    output: buffer
                 });
                 scene.draw({
                     program: blurProg,
@@ -70,7 +80,7 @@ define(function(require) {
                         direction: [0.0, 1.0]
                     },
                     inputs: {
-                        u_texture: outputLarge
+                        u_texture: buffer
                     },
                     output: outputSmall
                 });
@@ -85,7 +95,7 @@ define(function(require) {
                     inputs: {
                         u_texture: lastOutput
                     },
-                    output: input
+                    output: buffer
                 });
                 scene.draw({
                     program: blurProg,
@@ -93,7 +103,7 @@ define(function(require) {
                         direction: [0.0, 1.0]
                     },
                     inputs: {
-                        u_texture: input
+                        u_texture: buffer
                     },
                     output: outputLarge
                 });
@@ -112,11 +122,30 @@ define(function(require) {
         var steps = 1;
 
         for (var i = 0; i < steps; i++) {
-            applyBlur(8, bufferA, bufferB, bufferC)
+            applyBlur(2, bufferA, bufferB, bufferC, bufferD)
+            applyBlur(8, bufferD, bufferB, bufferA, bufferE)
         }
 
         scene.draw({
-            program: greyscottProg,
+            program: blendProg,
+            inputs: {
+                u_texture_a: bufferC,
+                u_texture_b: bufferA,
+            },
+            output: bufferB
+        });
+
+        scene.draw({
+            program: blendProg,
+            inputs: {
+                u_texture_a: bufferD,
+                u_texture_b: bufferE,
+            },
+            output: bufferC
+        });
+
+        scene.draw({
+            program: reactdiffProg,
             inputs: {
                 u_sample_small: bufferB,
                 u_sample_large: bufferC,

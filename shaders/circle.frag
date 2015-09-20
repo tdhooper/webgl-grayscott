@@ -8,8 +8,8 @@ float rand(vec2 co){
 }
 
 void main() {
-    bool on = length(vec2(0.5, 0.5)*resolution-gl_FragCoord.xy) > 20.;
-    // bool on = rand(gl_FragCoord.xy) > 0.5;
+    // bool on = length(vec2(0.5, 0.5)*resolution-gl_FragCoord.xy) > 20.
+    bool on = rand(gl_FragCoord.xy) > 0.5;
     if (on) {
         gl_FragColor = vec4( vec3(1.0), 1.0 );
     } else {
