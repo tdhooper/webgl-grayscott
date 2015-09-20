@@ -24,9 +24,28 @@ void main() {
     vec2 uv3 = texture2D(tSource, vUv+vec2(0.0, step_y)).rg;
 
     vec2 lapl = (uv0 + uv1 + uv2 + uv3 - 4.0*uv);//10485.76;
-    float du = /*0.00002*/0.2097*lapl.r - uv.r*uv.g*uv.g + feed*(1.0 - uv.r);
-    float dv = /*0.00001*/0.105*lapl.g + uv.r*uv.g*uv.g - (feed+kill)*uv.g;
-    vec2 dst = uv + delta*vec2(du, dv);
 
-    gl_FragColor = vec4(dst.r, dst.g, 0.0, 1.0);
+    float A = uv.r;
+    float B = uv.g;
+
+    float diffustionRate = 0.2 + vUv.x * 1.2;
+
+    float diffuseA = 0.2097 * diffustionRate;
+    float diffuseB = 0.105 * diffustionRate;
+
+    float laplA = lapl.r;
+    float laplB = lapl.g;
+
+    float reaction = A * B * B;
+
+    float feed = feed * 1.0;
+    float kill = kill * 1.0;
+
+    float du = diffuseA * laplA - reaction + feed * (1.0 - A);
+    float dv = diffuseB * laplB + reaction - (kill + feed) * B;
+    
+    float newA = A + du * delta;
+    float newB = B + dv * delta;
+
+    gl_FragColor = vec4(newA, newB, 0.0, 1.0);
 }
