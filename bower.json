@@ -1,0 +1,9 @@
+{
+  "name": "twgl-gray-scott",
+  "description": "Reaction diffusion (Gray-Scott) simulation, based on https://github.com/pmneila/jsexp, but using TWGL",
+  "dependencies": {
+    "twgl.js": "~0.0.26",
+    "requirejs": "~2.1.20",
+    "text": "~2.0.14"
+  }
+}
