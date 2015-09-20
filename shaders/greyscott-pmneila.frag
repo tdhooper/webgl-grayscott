@@ -28,7 +28,12 @@ void main() {
     float A = uv.r;
     float B = uv.g;
 
-    float diffustionRate = 0.2 + vUv.x * 1.2;
+    float dist = 1.0 - distance(vec2(0.5), vUv) * 2.0;
+    dist = (dist * 0.5) + 0.1;
+    dist = 1.0 - cos(dist * 3.14159265359);
+    // float dist = vUv.x;
+    float delta = delta * 0.25;
+    float diffustionRate = 0.5 + dist * 4.0;
 
     float diffuseA = 0.2097 * diffustionRate;
     float diffuseB = 0.105 * diffustionRate;

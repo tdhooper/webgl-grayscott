@@ -24,7 +24,7 @@ define(function(require) {
     var thresholdProg = scene.createProgramInfo(basicVert, thresholdFrag);
     var greyscottProg = scene.createProgramInfo(basicVert, greyscottFrag);
 
-    var scale = 2;
+    var scale = 1;
     var bufferA = scene.createBuffer(
         scene.width / scale,
         scene.height / scale
