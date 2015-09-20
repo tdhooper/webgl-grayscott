@@ -1,0 +1,48 @@
+{
+  "name": "twgl.js",
+  "version": "0.0.26",
+  "homepage": "http://twgljs.org",
+  "authors": [
+    "Gregg Tavares <github@greggman.com>"
+  ],
+  "description": "A Tiny WebGL Helper Library",
+  "main": "dist/twgl-full.min.js",
+  "moduleType": [
+    "amd",
+    "globals"
+  ],
+  "keywords": [
+    "WebGL",
+    "TWGL"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "jsdoc.conf.json",
+    "index.html",
+    "Gruntfile.js",
+    "package.json",
+    "CNAME",
+    "3rdparty",
+    "examples",
+    "docs",
+    "jsdoc-template",
+    "resources",
+    "build",
+    "src",
+    "templates",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "0.0.26",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.0.26",
+    "commit": "165367dda7d68791531bbfbd2c2801cc6337a294"
+  },
+  "_source": "git://github.com/greggman/twgl.js.git",
+  "_target": "~0.0.26",
+  "_originalSource": "twgl.js"
+}
