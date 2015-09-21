@@ -5,7 +5,7 @@ define(function(require) {
     var basicVert = require('text!shaders/basic.vert');
     var circleFrag = require('text!shaders/circle.frag');
     var thresholdFrag = require('text!shaders/threshold.frag');
-    var greyscottFrag = require('text!shaders/greyscott-pmneila.frag');
+    var grayscottFrag = require('text!shaders/grayscott-pmneila.frag');
 
     var previousPower = function(x) {
         x = x | (x >> 1);
@@ -22,7 +22,7 @@ define(function(require) {
     );
     var originProg = scene.createProgramInfo(basicVert, circleFrag);
     var thresholdProg = scene.createProgramInfo(basicVert, thresholdFrag);
-    var greyscottProg = scene.createProgramInfo(basicVert, greyscottFrag);
+    var grayscottProg = scene.createProgramInfo(basicVert, grayscottFrag);
 
     var scale = 2;
     var bufferA = scene.createBuffer(
@@ -55,7 +55,7 @@ define(function(require) {
             var output = (lastOutput === bufferA) ? bufferB : bufferA;
             lastOutput = output;
             scene.draw({
-                program: greyscottProg,
+                program: grayscottProg,
                 uniforms: {
                     delta: dt,
                     feed: 0.037,
