@@ -41,13 +41,23 @@ define(function(require) {
     });
 
     var mouse = [0.5, 0.5];
+    var mousedown = false;
 
     var $canvas = $(scene.canvas);
+
     $canvas.mousemove(function(evt) {
         var offset = $canvas.offset();
         mouse[0] = (evt.pageX - offset.left) / $canvas.width();
         mouse[1] = 1 - ((evt.pageY - offset.top) / $canvas.height());
-    })
+    });
+
+    $canvas.mousedown(function() {
+        mousedown = true;
+    });
+
+    $canvas.mouseup(function() {
+        mousedown = false;
+    });
 
     var mLastTime = Number(new Date());
 
@@ -71,7 +81,8 @@ define(function(require) {
                     delta: dt,
                     feed: 0.037,
                     kill: 0.06,
-                    mouse: mouse
+                    mouse: mouse,
+                    mousedown: mousedown
                 },
                 inputs: {
                     tSource: input
