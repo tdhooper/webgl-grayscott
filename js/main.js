@@ -57,6 +57,7 @@ define(function(require) {
             scene.draw({
                 program: grayscottProg,
                 uniforms: {
+                    time: time,
                     delta: dt,
                     feed: 0.037,
                     kill: 0.06
