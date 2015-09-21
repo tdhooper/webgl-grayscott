@@ -8,13 +8,14 @@ uniform float delta;
 uniform float time;
 uniform float feed;
 uniform float kill;
+uniform vec2 mouse;
 
 #define zoomRate 0.03;
 #define radius 10.0;
 
 vec2 zoomUv(vec2 origin) {
     float deltax = gl_FragCoord.x/resolution.x - origin.x;
-    float deltay = gl_FragCoord.y/resolution.y - origin.x;
+    float deltay = gl_FragCoord.y/resolution.y - origin.y;
     float angleradians = atan(deltay,deltax)+3.14159265;
     float newx = gl_FragCoord.x + cos(angleradians)*zoomRate;
     float newy = gl_FragCoord.y + sin(angleradians)*zoomRate;
@@ -37,7 +38,7 @@ vec4 addNoise(vec4 color, vec2 origin) {
 }
 
 void main() {
-    vec2 origin = vec2(0.5, 0.5);
+    vec2 origin = mouse;
     vec2 vUv = zoomUv(origin);
 
     float step_x = 1.0 / resolution.x;

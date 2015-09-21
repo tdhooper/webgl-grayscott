@@ -4,6 +4,7 @@
   "dependencies": {
     "twgl.js": "~0.0.26",
     "requirejs": "~2.1.20",
-    "text": "~2.0.14"
+    "text": "~2.0.14",
+    "jquery": "~2.1.4"
   }
 }

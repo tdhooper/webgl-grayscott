@@ -1,5 +1,6 @@
 define(function(require) {
 
+    require('lib/jquery');
     var Scene = require('scene');
 
     var basicVert = require('text!shaders/basic.vert');
@@ -39,6 +40,15 @@ define(function(require) {
         output: bufferA
     });
 
+    var mouse = [0.5, 0.5];
+
+    var $canvas = $(scene.canvas);
+    $canvas.mousemove(function(evt) {
+        var offset = $canvas.offset();
+        mouse[0] = (evt.pageX - offset.left) / $canvas.width();
+        mouse[1] = 1 - ((evt.pageY - offset.top) / $canvas.height());
+    })
+
     var mLastTime = Number(new Date());
 
     function render(time) {
@@ -60,7 +70,8 @@ define(function(require) {
                     time: time,
                     delta: dt,
                     feed: 0.037,
-                    kill: 0.06
+                    kill: 0.06,
+                    mouse: mouse
                 },
                 inputs: {
                     tSource: input

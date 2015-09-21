@@ -5,10 +5,10 @@ define(function(require) {
     twgl.setAttributePrefix("a_");
 
     var Scene = function(width, height) {
-        var canvas = document.createElement('canvas');
-        document.body.appendChild(canvas);
+        this.canvas = document.createElement('canvas');
+        document.body.appendChild(this.canvas);
 
-        this.gl = twgl.getWebGLContext(canvas);
+        this.gl = twgl.getWebGLContext(this.canvas);
         this.gl.getExtension( 'OES_texture_float' );
         this.gl.getExtension( 'OES_texture_float_linear' );
 
