@@ -6,7 +6,7 @@ define(function(require) {
     var basicVert = require('text!shaders/basic.vert');
     var circleFrag = require('text!shaders/circle.frag');
     var copyFrag = require('text!shaders/copy.frag');
-    // var blurFrag = require('text!shaders/blur.frag');
+    var blurFrag = require('text!shaders/blur.frag');
     var bleedFrag = require('text!shaders/bleed.frag');
     var paintFrag = require('text!shaders/paint.frag');
     var grayscottFrag = require('text!shaders/grayscott-pmneila.frag');
@@ -26,7 +26,7 @@ define(function(require) {
     );
     var originProg = scene.createProgramInfo(basicVert, circleFrag);
     var paintProg = scene.createProgramInfo(basicVert, paintFrag);
-    // var blurProg = scene.createProgramInfo(basicVert, blurFrag);
+    var blurProg = scene.createProgramInfo(basicVert, blurFrag);
     var bleedProg = scene.createProgramInfo(basicVert, bleedFrag);
     var copyProg = scene.createProgramInfo(basicVert, copyFrag);
     var grayscottProg = scene.createProgramInfo(basicVert, grayscottFrag);
@@ -41,6 +41,10 @@ define(function(require) {
         scene.height / scale
     );
     var bleedBuffer = scene.createBuffer(
+        scene.width,
+        scene.height
+    );
+    var blurBuffer = scene.createBuffer(
         scene.width,
         scene.height
     );
@@ -125,6 +129,32 @@ define(function(require) {
         });
     }
 
+    function applyBlur(input, output) {
+        // Bleed X
+        scene.draw({
+            program: blurProg,
+            uniforms: {
+                direction: [1, 0]
+            },
+            inputs: {
+                u_texture: input
+            },
+            output: bleedBuffer
+        });
+
+        // Bleed Y
+        scene.draw({
+            program: blurProg,
+            uniforms: {
+                direction: [0, 1]
+            },
+            inputs: {
+                u_texture: bleedBuffer
+            },
+            output: output
+        });
+    }
+
     function render(time) {
         var dt = (time - mLastTime)/20.0;
         if(dt > 0.8 || dt<=0)
@@ -141,15 +171,18 @@ define(function(require) {
             simulate(time, dt, input, output);
         }
 
+        applyBlur(paintBufferA, blurBuffer);
+
         // Paint
         scene.draw({
             program: paintProg,
             uniforms: {
-                threshold: 0.25,
+                threshold: 0.05,
                 hue: (time * 0.0001) % 1
             },
             inputs: {
                 u_texture: paintBufferA,
+                u_texture_blur: blurBuffer,
                 u_texture_mask: simulationBufferA
             },
             output: paintBufferB

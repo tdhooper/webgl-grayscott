@@ -4,6 +4,7 @@ uniform vec2 resolution;
 uniform float threshold;
 uniform float hue;
 uniform sampler2D u_texture;
+uniform sampler2D u_texture_blur;
 uniform sampler2D u_texture_mask;
 
 
@@ -98,16 +99,19 @@ void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
     vec4 mask = texture2D( u_texture_mask, uv );
     vec3 fill = vec3(0.0);
+    vec3 fillHSL = vec3(hue, 1.0, 0.5);
 
     if (mask.g > threshold) {
         vec4 lastFill = texture2D( u_texture, uv );
-        vec3 fillHSL = vec3(hue, 1.0, 0.5);
-
         if (lastFill.rgb != vec3(0.0)) {
             fillHSL = RGBToHSL(lastFill.rgb);
-            fillHSL = vec3(fillHSL.r, 1.0, 0.5);
+        } else {
+            vec4 blurFill = texture2D( u_texture_blur, uv );
+            if (blurFill.rgb != vec3(0.0)) {
+                fillHSL = RGBToHSL(blurFill.rgb);
+            }
         }
-
+        fillHSL = vec3(fillHSL.r, 1.0, 0.5);
         fill = HSLToRGB(fillHSL);
     }
 
