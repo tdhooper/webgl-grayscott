@@ -5,7 +5,9 @@ define(function(require) {
 
     var basicVert = require('text!shaders/basic.vert');
     var circleFrag = require('text!shaders/circle.frag');
-    var thresholdFrag = require('text!shaders/threshold.frag');
+    var copyFrag = require('text!shaders/copy.frag');
+    var blurFrag = require('text!shaders/blur.frag');
+    var paintFrag = require('text!shaders/paint.frag');
     var grayscottFrag = require('text!shaders/grayscott-pmneila.frag');
 
     var previousPower = function(x) {
@@ -22,22 +24,36 @@ define(function(require) {
         previousPower(document.body.clientHeight)
     );
     var originProg = scene.createProgramInfo(basicVert, circleFrag);
-    var thresholdProg = scene.createProgramInfo(basicVert, thresholdFrag);
+    var paintProg = scene.createProgramInfo(basicVert, paintFrag);
+    var blurProg = scene.createProgramInfo(basicVert, blurFrag);
+    var copyProg = scene.createProgramInfo(basicVert, copyFrag);
     var grayscottProg = scene.createProgramInfo(basicVert, grayscottFrag);
 
     var scale = 2;
-    var bufferA = scene.createBuffer(
+    var simulationBufferA = scene.createBuffer(
         scene.width / scale,
         scene.height / scale
     );
-    var bufferB = scene.createBuffer(
+    var simulationBufferB = scene.createBuffer(
         scene.width / scale,
         scene.height / scale
+    );
+    var blurBuffer = scene.createBuffer(
+        scene.width / scale,
+        scene.height / scale
+    );
+    var paintBufferA = scene.createBuffer(
+        scene.width,
+        scene.height
+    );
+    var paintBufferB = scene.createBuffer(
+        scene.width,
+        scene.height
     );
 
     scene.draw({
         program: originProg,
-        output: bufferA
+        output: simulationBufferA
     });
 
     var mouse = [0.5, 0.5];
@@ -67,12 +83,12 @@ define(function(require) {
             dt = 0.8;
         mLastTime = time;
 
-        var steps = 8;
-        var lastOutput = bufferA;
+        var steps = 8; // Must be even
+        var lastOutput = simulationBufferA;
 
         for (var i = 0; i < steps; i++) {
             var input = lastOutput;
-            var output = (lastOutput === bufferA) ? bufferB : bufferA;
+            var output = (lastOutput === simulationBufferA) ? simulationBufferB : simulationBufferA;
             lastOutput = output;
             scene.draw({
                 program: grayscottProg,
@@ -91,13 +107,48 @@ define(function(require) {
             });
         }
 
+        // Blur X
         scene.draw({
-            program: thresholdProg,
+            program: blurProg,
             uniforms: {
-                threshold: 0.2
+                direction: [1, 0]
             },
             inputs: {
-                u_texture: bufferA
+                u_texture: paintBufferA
+            },
+            output: blurBuffer
+        });
+
+        // Blur Y
+        scene.draw({
+            program: blurProg,
+            uniforms: {
+                direction: [0, 1]
+            },
+            inputs: {
+                u_texture: blurBuffer
+            },
+            output: paintBufferB
+        });
+
+        // Paint
+        scene.draw({
+            program: paintProg,
+            uniforms: {
+                threshold: 0.1,
+                hue: (time * 0.0001) % 1
+            },
+            inputs: {
+                u_texture: paintBufferB,
+                u_texture_mask: simulationBufferA
+            },
+            output: paintBufferA
+        });
+
+        scene.draw({
+            program: copyProg,
+            inputs: {
+                u_texture: paintBufferA,
             }
         });
 
