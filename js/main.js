@@ -178,7 +178,9 @@ define(function(require) {
             program: paintProg,
             uniforms: {
                 threshold: 0.05,
-                hue: (time * 0.0001) % 1
+                hue: (time * 0.0001) % 1,
+                mouse: mouse,
+                mousedown: mousedown
             },
             inputs: {
                 u_texture: paintBufferA,
