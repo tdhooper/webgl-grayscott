@@ -6,7 +6,8 @@ define(function(require) {
     var basicVert = require('text!shaders/basic.vert');
     var circleFrag = require('text!shaders/circle.frag');
     var copyFrag = require('text!shaders/copy.frag');
-    var blurFrag = require('text!shaders/blur.frag');
+    // var blurFrag = require('text!shaders/blur.frag');
+    var bleedFrag = require('text!shaders/bleed.frag');
     var paintFrag = require('text!shaders/paint.frag');
     var grayscottFrag = require('text!shaders/grayscott-pmneila.frag');
 
@@ -25,7 +26,8 @@ define(function(require) {
     );
     var originProg = scene.createProgramInfo(basicVert, circleFrag);
     var paintProg = scene.createProgramInfo(basicVert, paintFrag);
-    var blurProg = scene.createProgramInfo(basicVert, blurFrag);
+    // var blurProg = scene.createProgramInfo(basicVert, blurFrag);
+    var bleedProg = scene.createProgramInfo(basicVert, bleedFrag);
     var copyProg = scene.createProgramInfo(basicVert, copyFrag);
     var grayscottProg = scene.createProgramInfo(basicVert, grayscottFrag);
 
@@ -38,7 +40,7 @@ define(function(require) {
         scene.width / scale,
         scene.height / scale
     );
-    var blurBuffer = scene.createBuffer(
+    var bleedBuffer = scene.createBuffer(
         scene.width,
         scene.height
     );
@@ -83,10 +85,10 @@ define(function(require) {
             uniforms: {
                 time: time,
                 delta: dt,
-                feed: 0.037,
-                kill: 0.06,
-                // feed: 0.03,
-                // kill: 0.062,
+                // feed: 0.037,
+                // kill: 0.06,
+                feed: 0.03,
+                kill: 0.062,
                 mouse: mouse,
                 mousedown: mousedown
             },
@@ -97,27 +99,27 @@ define(function(require) {
         });
     }
 
-    function applyBlur(input, output) {
-        // Blur X
+    function applyBleed(input, output) {
+        // Bleed X
         scene.draw({
-            program: blurProg,
+            program: bleedProg,
             uniforms: {
                 direction: [1, 0]
             },
             inputs: {
                 u_texture: input
             },
-            output: blurBuffer
+            output: bleedBuffer
         });
 
-        // Blur Y
+        // Bleed Y
         scene.draw({
-            program: blurProg,
+            program: bleedProg,
             uniforms: {
                 direction: [0, 1]
             },
             inputs: {
-                u_texture: blurBuffer
+                u_texture: bleedBuffer
             },
             output: output
         });
@@ -143,7 +145,7 @@ define(function(require) {
         scene.draw({
             program: paintProg,
             uniforms: {
-                threshold: 0.1,
+                threshold: 0.25,
                 hue: (time * 0.0001) % 1
             },
             inputs: {
@@ -160,7 +162,7 @@ define(function(require) {
             var input = lastOutput;
             var output = (lastOutput === paintBufferA) ? paintBufferB : paintBufferA;
             lastOutput = output;
-            applyBlur(input, output);
+            applyBleed(input, output);
         }
 
         scene.draw({
