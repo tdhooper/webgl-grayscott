@@ -77,36 +77,25 @@ define(function(require) {
 
     var mLastTime = Number(new Date());
 
-    function render(time) {
-        var dt = (time - mLastTime)/20.0;
-        if(dt > 0.8 || dt<=0)
-            dt = 0.8;
-        mLastTime = time;
+    function simulate(time, dt, input, output) {
+        scene.draw({
+            program: grayscottProg,
+            uniforms: {
+                time: time,
+                delta: dt,
+                feed: 0.037,
+                kill: 0.06,
+                mouse: mouse,
+                mousedown: mousedown
+            },
+            inputs: {
+                tSource: input
+            },
+            output: output
+        });
+    }
 
-        var steps = 8; // Must be even
-        var lastOutput = simulationBufferA;
-
-        for (var i = 0; i < steps; i++) {
-            var input = lastOutput;
-            var output = (lastOutput === simulationBufferA) ? simulationBufferB : simulationBufferA;
-            lastOutput = output;
-            scene.draw({
-                program: grayscottProg,
-                uniforms: {
-                    time: time,
-                    delta: dt,
-                    feed: 0.037,
-                    kill: 0.06,
-                    mouse: mouse,
-                    mousedown: mousedown
-                },
-                inputs: {
-                    tSource: input
-                },
-                output: output
-            });
-        }
-
+    function applyBlur(input, output) {
         // Blur X
         scene.draw({
             program: blurProg,
@@ -114,7 +103,7 @@ define(function(require) {
                 direction: [1, 0]
             },
             inputs: {
-                u_texture: paintBufferA
+                u_texture: input
             },
             output: blurBuffer
         });
@@ -128,8 +117,35 @@ define(function(require) {
             inputs: {
                 u_texture: blurBuffer
             },
-            output: paintBufferB
+            output: output
         });
+    }
+
+    function render(time) {
+        var dt = (time - mLastTime)/20.0;
+        if(dt > 0.8 || dt<=0)
+            dt = 0.8;
+        mLastTime = time;
+
+        var steps = 8; // Must be even
+        var lastOutput = simulationBufferA;
+
+        for (var i = 0; i < steps; i++) {
+            var input = lastOutput;
+            var output = (lastOutput === simulationBufferA) ? simulationBufferB : simulationBufferA;
+            lastOutput = output;
+            simulate(time, dt, input, output);
+        }
+
+        var steps = 3; // Must be odd
+        var lastOutput = paintBufferA;
+
+        for (var i = 0; i < steps; i++) {
+            var input = lastOutput;
+            var output = (lastOutput === paintBufferA) ? paintBufferB : paintBufferA;
+            lastOutput = output;
+            applyBlur(input, output);
+        }
 
         // Paint
         scene.draw({
