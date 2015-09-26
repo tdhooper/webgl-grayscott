@@ -41,8 +41,8 @@ define(function(require) {
         scene.height / scale
     );
     var blurBuffer = scene.createBuffer(
-        scene.width / scale,
-        scene.height / scale
+        scene.width,
+        scene.height
     );
     var paintBufferA = scene.createBuffer(
         scene.width,
@@ -95,8 +95,10 @@ define(function(require) {
             uniforms: {
                 time: time,
                 delta: dt,
-                feed: 0.037,
-                kill: 0.06,
+                // feed: 0.037,
+                // kill: 0.06,
+                feed: 0.03,
+                kill: 0.062,
                 mouse: mouse,
                 mousedown: mousedown
             },
@@ -149,7 +151,7 @@ define(function(require) {
             simulate(time, dt, input, output);
         }
 
-        var steps = 3; // Must be odd
+        var steps = 1; // Must be odd
         var lastOutput = paintBufferA;
 
         for (var i = 0; i < steps; i++) {
@@ -171,7 +173,7 @@ define(function(require) {
         scene.draw({
             program: paintProg,
             uniforms: {
-                threshold: 0.1,
+                threshold: 0.05,
                 hue: (time * 0.0001) % 1
             },
             inputs: {
