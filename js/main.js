@@ -95,10 +95,10 @@ define(function(require) {
             uniforms: {
                 time: time,
                 delta: dt,
-                // feed: 0.037,
-                // kill: 0.06,
-                feed: 0.03,
-                kill: 0.062,
+                feed: 0.037,
+                kill: 0.06,
+                // feed: 0.03,
+                // kill: 0.062,
                 mouse: mouse,
                 mousedown: mousedown
             },
@@ -151,8 +151,30 @@ define(function(require) {
             simulate(time, dt, input, output);
         }
 
-        var steps = 1; // Must be odd
-        var lastOutput = paintBufferA;
+        // Paint
+        scene.draw({
+            program: paintProg,
+            uniforms: {
+                threshold: 0.1,
+                hue: (time * 0.0001) % 1
+            },
+            inputs: {
+                u_texture: paintBufferA,
+                u_texture_mask: simulationBufferA
+            },
+            output: paintBufferB
+        });
+
+        scene.draw({
+            program: copyProg,
+            inputs: {
+                u_texture: paintBufferB
+            }
+        });
+        debugContext.drawImage(scene.canvas, 0, 0);
+
+        var steps = 3; // Must be odd
+        var lastOutput = paintBufferB;
 
         for (var i = 0; i < steps; i++) {
             var input = lastOutput;
@@ -160,28 +182,6 @@ define(function(require) {
             lastOutput = output;
             applyBlur(input, output);
         }
-
-        scene.draw({
-            program: debugProg,
-            inputs: {
-                tSource: paintBufferA
-            }
-        });
-        debugContext.drawImage(scene.canvas, 0, 0);
-
-        // Paint
-        scene.draw({
-            program: paintProg,
-            uniforms: {
-                threshold: 0.05,
-                hue: (time * 0.0001) % 1
-            },
-            inputs: {
-                u_texture: paintBufferB,
-                u_texture_mask: simulationBufferA
-            },
-            output: paintBufferA
-        });
 
         scene.draw({
             program: copyProg,
