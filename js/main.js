@@ -7,6 +7,7 @@ define(function(require) {
     var circleFrag = require('text!shaders/circle.frag');
     var copyFrag = require('text!shaders/copy.frag');
     var blurFrag = require('text!shaders/blur.frag');
+    var debugFrag = require('text!shaders/debug.frag');
     var paintFrag = require('text!shaders/paint.frag');
     var grayscottFrag = require('text!shaders/grayscott-pmneila.frag');
 
@@ -26,6 +27,7 @@ define(function(require) {
     var originProg = scene.createProgramInfo(basicVert, circleFrag);
     var paintProg = scene.createProgramInfo(basicVert, paintFrag);
     var blurProg = scene.createProgramInfo(basicVert, blurFrag);
+    var debugProg = scene.createProgramInfo(basicVert, debugFrag);
     var copyProg = scene.createProgramInfo(basicVert, copyFrag);
     var grayscottProg = scene.createProgramInfo(basicVert, grayscottFrag);
 
@@ -50,6 +52,16 @@ define(function(require) {
         scene.width,
         scene.height
     );
+
+    function createDebugContext() {
+        var canvas = document.createElement('canvas');
+        document.body.appendChild(canvas);
+        canvas.width = scene.width;
+        canvas.height = scene.height;
+        return canvas.getContext('2d');
+    }
+
+    var debugContext = createDebugContext();
 
     scene.draw({
         program: originProg,
@@ -146,6 +158,14 @@ define(function(require) {
             lastOutput = output;
             applyBlur(input, output);
         }
+
+        scene.draw({
+            program: debugProg,
+            inputs: {
+                tSource: paintBufferA
+            }
+        });
+        debugContext.drawImage(scene.canvas, 0, 0);
 
         // Paint
         scene.draw({
