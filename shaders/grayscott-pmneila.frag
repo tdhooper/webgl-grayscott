@@ -11,16 +11,21 @@ uniform float kill;
 uniform vec2 mouse;
 uniform bool mousedown;
 
-#define radius 10.0;
+#define radius 20.0;
 
-float rand(vec2 co){
+float rand(vec2 co, float scale){
+    co = vec2(float(int(co.x / scale)), float(int(co.y / scale)));
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-vec4 addFeed(vec4 color, vec2 origin) {
+vec4 draw(vec4 color, vec2 origin) {
     bool inCircle = length(origin * resolution - gl_FragCoord.xy) < radius;
     if (inCircle) {
-        color.g = 0.9;
+        if (rand(gl_FragCoord.xy + time, 5.0) > 0.1) {
+            color.g = 0.0;
+        } else {
+            color.g = 0.5;
+        }
     }
     return color;
 }
@@ -65,7 +70,7 @@ void main() {
     vec4 color = vec4(newA, newB, 0.0, 1.0);
 
     if (mousedown) {
-        color = addFeed(color, mouse);
+        color = draw(color, mouse);
     }
 
     gl_FragColor = color;
