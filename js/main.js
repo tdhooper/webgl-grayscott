@@ -89,10 +89,10 @@ define(function(require) {
             uniforms: {
                 time: time,
                 delta: dt,
-                // feed: 0.037,
-                // kill: 0.06,
-                feed: 0.03,
-                kill: 0.062,
+                feed: 0.037,
+                kill: 0.06,
+                // feed: 0.03,
+                // kill: 0.062,
                 mouse: mouse,
                 mousedown: mousedown
             },
@@ -177,7 +177,7 @@ define(function(require) {
         scene.draw({
             program: paintProg,
             uniforms: {
-                threshold: 0.05,
+                threshold: 0.1,
                 hue: (time * 0.0001) % 1,
                 mouse: mouse,
                 mousedown: mousedown
@@ -200,12 +200,13 @@ define(function(require) {
             applyBleed(input, output);
         }
 
-        scene.draw({
-            program: copyProg,
-            inputs: {
-                u_texture: paintBufferA,
-            }
-        });
+        // scene.draw({
+        //     program: copyProg,
+        //     inputs: {
+        //         u_texture: paintBufferA,
+        //     }
+        // });
+        scene.drawLastBuffer();
 
         requestAnimationFrame(render);
     }
