@@ -21,7 +21,8 @@ float rand(vec2 co, float scale){
 vec4 draw(vec4 color, vec2 origin) {
     bool inCircle = length(origin * resolution - gl_FragCoord.xy) < radius;
     if (inCircle) {
-        if (rand(gl_FragCoord.xy + time, 5.0) > 0.1) {
+        float timestep = float(int(time * 0.001)) * 100.0;
+        if (rand(gl_FragCoord.xy + timestep, 5.0) > 0.1) {
             color.g = 0.0;
         } else {
             color.g = 0.5;
