@@ -66,6 +66,7 @@ define(function(require) {
     var mousedown = false;
 
     var $canvas = $(scene.canvas);
+    var $body = $(document.body);
 
     $canvas.mousemove(function(evt) {
         var offset = $canvas.offset();
@@ -73,11 +74,11 @@ define(function(require) {
         mouse[1] = 1 - ((evt.pageY - offset.top) / $canvas.height());
     });
 
-    $canvas.mousedown(function() {
+    $body.mousedown(function() {
         mousedown = true;
     });
 
-    $canvas.mouseup(function() {
+    $body.mouseup(function() {
         mousedown = false;
     });
 
