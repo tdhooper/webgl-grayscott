@@ -11,7 +11,19 @@ uniform float kill;
 uniform vec2 mouse;
 uniform bool mousedown;
 
-#define radius 20.0;
+#define radius 15.0;
+#define zoomRate 0.06;
+
+vec2 zoomUv(vec2 origin) {
+    float deltax = gl_FragCoord.x/resolution.x - origin.x;
+    float deltay = gl_FragCoord.y/resolution.y - origin.y;
+    float angleradians = atan(deltay,deltax)+3.14159265;
+    float newx = gl_FragCoord.x + cos(angleradians)*zoomRate;
+    float newy = gl_FragCoord.y + sin(angleradians)*zoomRate;
+    vec2 positionPixel = vec2(newx,newy);
+    vec2 position = positionPixel/resolution;
+    return position;
+}
 
 float rand(vec2 co, float scale){
     co = vec2(float(int(co.x / scale)), float(int(co.y / scale)));
@@ -21,7 +33,7 @@ float rand(vec2 co, float scale){
 vec4 draw(vec4 color, vec2 origin) {
     bool inCircle = length(origin * resolution - gl_FragCoord.xy) < radius;
     if (inCircle) {
-        float timestep = float(int(time * 0.001)) * 100.0;
+        float timestep = float(int(time * 0.1)) * 10.0;
         if (rand(gl_FragCoord.xy + timestep, 5.0) > 0.1) {
             color.g = 0.0;
         } else {
@@ -32,7 +44,9 @@ vec4 draw(vec4 color, vec2 origin) {
 }
 
 void main() {
-    vec2 vUv = gl_FragCoord.xy / resolution;
+    vec2 origin = mouse;
+    vec2 vUv = zoomUv(origin);
+    //vec2 vUv = gl_FragCoord.xy / resolution;
 
     float step_x = 1.0 / resolution.x;
     float step_y = 1.0 / resolution.y; // Resolution
@@ -70,9 +84,9 @@ void main() {
 
     vec4 color = vec4(newA, newB, 0.0, 1.0);
 
-    if (mousedown) {
+    // if (mousedown) {
         color = draw(color, mouse);
-    }
+    // }
 
     gl_FragColor = color;
 }

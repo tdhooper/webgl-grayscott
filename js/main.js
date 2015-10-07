@@ -162,7 +162,7 @@ define(function(require) {
             dt = 0.8;
         mLastTime = time;
 
-        var steps = 8; // Must be even
+        var steps = 16; // Must be even
         var lastOutput = simulationBufferA;
 
         for (var i = 0; i < steps; i++) {
@@ -191,7 +191,7 @@ define(function(require) {
             output: paintBufferB
         });
 
-        var steps = 3; // Must be odd
+        var steps = 1; // Must be odd
         var lastOutput = paintBufferB;
 
         for (var i = 0; i < steps; i++) {

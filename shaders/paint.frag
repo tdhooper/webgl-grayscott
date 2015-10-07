@@ -9,6 +9,7 @@ uniform sampler2D u_texture;
 uniform sampler2D u_texture_blur;
 uniform sampler2D u_texture_mask;
 
+#define radius 15.0;
 
 // From http://www.opengl.org/discussion_boards/showthread.php/180866-Modifying-Hue-value-with-GLSL
 vec3 RGBToHSL(vec3 color)
@@ -96,9 +97,6 @@ vec3 HSLToRGB(vec3 hsl)
 
     return rgb;
 }
-
-#define radius 20.0;
-
 
 void main() {
     vec2 uv = gl_FragCoord.xy / resolution;
