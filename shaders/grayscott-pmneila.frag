@@ -12,7 +12,7 @@ uniform vec2 mouse;
 uniform bool mousedown;
 
 #define radius 15.0;
-#define zoomRate 0.06;
+#define zoomRate 0.08;
 
 vec2 zoomUv(vec2 origin) {
     float deltax = gl_FragCoord.x/resolution.x - origin.x;
