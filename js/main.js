@@ -84,19 +84,70 @@ define(function(require) {
 
     var mLastTime = Number(new Date());
 
+    var presets = [
+        { // Default
+            //feed: 0.018,
+            //kill: 0.051
+            feed: 0.037,
+            kill: 0.06
+        },
+        { // Solitons
+            feed: 0.03,
+            kill: 0.062
+        },
+        { // Pulsating solitons
+            feed: 0.025,
+            kill: 0.06
+        },
+        { // Worms.
+            feed: 0.078,
+            kill: 0.061
+        },
+        { // Mazes
+            feed: 0.029,
+            kill: 0.057
+        },
+        { // Holes
+            feed: 0.039,
+            kill: 0.058
+        },
+        { // Chaos
+            feed: 0.026,
+            kill: 0.051
+        },
+        { // Chaos and holes (by clem)
+            feed: 0.034,
+            kill: 0.056
+        },
+        { // Moving spots.
+            feed: 0.014,
+            kill: 0.054
+        },
+        { // Spots and loops.
+            feed: 0.018,
+            kill: 0.051
+        },
+        { // Waves
+            feed: 0.014,
+            kill: 0.045
+        },
+        { // The U-Skate World
+            feed: 0.062,
+            kill: 0.06093
+        }
+    ];
+
     function simulate(time, dt, input, output) {
+        var uniforms = {
+            time: time,
+            delta: dt,
+            mouse: mouse,
+            mousedown: mousedown
+        };
+        Object.assign(uniforms, presets[0]);
         scene.draw({
             program: grayscottProg,
-            uniforms: {
-                time: time,
-                delta: dt,
-                feed: 0.037,
-                kill: 0.06,
-                // feed: 0.03,
-                // kill: 0.062,
-                mouse: mouse,
-                mousedown: mousedown
-            },
+            uniforms: uniforms,
             inputs: {
                 tSource: input
             },
@@ -162,7 +213,7 @@ define(function(require) {
             dt = 0.8;
         mLastTime = time;
 
-        var steps = 16; // Must be even
+        var steps = 8; // Must be even
         var lastOutput = simulationBufferA;
 
         for (var i = 0; i < steps; i++) {
@@ -171,6 +222,16 @@ define(function(require) {
             lastOutput = output;
             simulate(time, dt, input, output);
         }
+
+        // scene.draw({
+        //     program: copyProg,
+        //     inputs: {
+        //         u_texture: output,
+        //     },
+        // });
+
+        // requestAnimationFrame(render);
+        // return;
 
         applyBlur(paintBufferA, blurBuffer);
 
@@ -201,13 +262,13 @@ define(function(require) {
             applyBleed(input, output);
         }
 
-        // scene.draw({
-        //     program: copyProg,
-        //     inputs: {
-        //         u_texture: paintBufferA,
-        //     }
-        // });
-        scene.drawLastBuffer();
+        scene.draw({
+            program: copyProg,
+            inputs: {
+                u_texture: paintBufferA,
+            }
+        });
+        // scene.drawLastBuffer();
 
         requestAnimationFrame(render);
     }
