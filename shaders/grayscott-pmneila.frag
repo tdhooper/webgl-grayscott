@@ -85,7 +85,6 @@ void main() {
 
     bool inCircle = length(mouse * resolution - gl_FragCoord.xy) < radius;
 
-    // if (inCircle) {
     if (newB <= 0.0001) {
         float timestep = float(int(time * 0.001)) * 100.0;
         float pixel = rand(gl_FragCoord.xy, 3.0);
@@ -93,6 +92,32 @@ void main() {
             newB = 1.1;
             newA = 0.0;
         }
+    }
+
+    float timestep = float(int(time * 0.01)) * 100.0;
+    float pixel = rand(gl_FragCoord.xy + timestep, 1.0);
+
+    if (pixel < 0.01) {
+        newB *= 0.95;
+        newA *= 1.05;
+    }
+
+    timestep = float(int(time * 0.001)) * 100.0;
+    pixel = rand(gl_FragCoord.xy, 1.0);
+
+    vec2 mousepx = mouse.xy * resolution.xy;
+
+    vec2 relativeUv = (vUv - mouse) * resolution;
+    float a = sin((atan(relativeUv.y, relativeUv.x)) * 10.0);
+    float r = 20.0;
+
+    if (
+        a > 0.95
+        && length(mousepx - gl_FragCoord.xy) > r - 1.0
+        && length(mousepx - gl_FragCoord.xy) < r
+    ) {
+        newB = 1.1;
+        newA = -0.3;
     }
 
     if (inCircle) {
